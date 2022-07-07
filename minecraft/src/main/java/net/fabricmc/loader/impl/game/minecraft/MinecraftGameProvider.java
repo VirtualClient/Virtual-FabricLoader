@@ -42,7 +42,6 @@ import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
 import net.fabricmc.loader.impl.game.LibClassifier;
-import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
@@ -87,7 +86,6 @@ public class MinecraftGameProvider implements GameProvider {
 
 	private static final GameTransformer TRANSFORMER = new GameTransformer(
 			new EntrypointPatch(),
-			new BrandingPatch(),
 			new EntrypointPatchFML125());
 
 	@Override
