@@ -253,16 +253,16 @@ public class MinecraftGameProvider implements GameProvider {
 			}
 
 			if (!argMap.containsKey("version")) {
-				argMap.put("version", "Fabric");
+				argMap.put("version", "VirtualClient");
 			}
 
 			String versionType = "";
 
-			if (argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")) {
-				versionType = argMap.get("versionType") + "/";
+			if (argMap.containsKey("versionType")) {
+				versionType = argMap.get("versionType");
 			}
 
-			argMap.put("versionType", versionType + "Fabric");
+			argMap.put("versionType", versionType);
 
 			if (!argMap.containsKey("gameDir")) {
 				argMap.put("gameDir", getLaunchDirectory(argMap).toAbsolutePath().normalize().toString());

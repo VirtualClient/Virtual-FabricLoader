@@ -1,6 +1,5 @@
 buildscript {
 	dependencies {
-		classpath 'org.kohsuke:github-api:1.135'
 		classpath 'com.guardsquare:proguard-gradle:' + (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11) ? '7.2.0-beta2' : '7.1.0')
 	}
 }
@@ -31,7 +30,7 @@ allprojects {
 	apply plugin: 'checkstyle'
 
 	def constantsSource = rootProject.file("src/main/java/net/fabricmc/loader/impl/FabricLoaderImpl.java").text
-	version = (constantsSource =~ /\s+VERSION\s*=\s*"(.*)";/)[0][1] + (ENV.GITHUB_ACTIONS ? "" : "+local")
+	version = (constantsSource =~ /\s+VERSION\s*=\s*"(.*)";/)[0][1]
 
 	repositories {
 		maven {
@@ -318,14 +317,10 @@ publishing {
 
 	// select the repositories you want to publish to
 	repositories {
-		if (ENV.MAVEN_URL) {
-			maven {
-				url ENV.MAVEN_URL
-				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
-				}
-			}
+		maven {
+			name = "virtualclientRepository"
+			credentials(PasswordCredentials.class)
+			url = "https://repo.teamvirtual.eu/artifactory/virtualclient-public/"
 		}
 	}
 }
@@ -339,40 +334,3 @@ def getBranch() {
 
 	return "unknown"
 }
-
-import org.kohsuke.github.GHReleaseBuilder
-import org.kohsuke.github.GitHub
-
-task github(dependsOn: publish) {
-	onlyIf {
-		ENV.GITHUB_TOKEN
-	}
-
-	doLast {
-		def github = GitHub.connectUsingOAuth(ENV.GITHUB_TOKEN as String)
-		def repository = github.getRepository(ENV.GITHUB_REPOSITORY)
-
-		def releaseBuilder = new GHReleaseBuilder(repository, version as String)
-		releaseBuilder.name("Fabric Loader $version")
-		releaseBuilder.body(ENV.CHANGELOG ?: "No changelog provided")
-		releaseBuilder.commitish(getBranch())
-		releaseBuilder.prerelease(false)
-
-		releaseBuilder.create()
-	}
-}
-
-// A task to ensure that the version being released has not already been released.
-task checkVersion {
-	doFirst {
-		def xml = new URL("https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml").text
-		def metadata = new XmlSlurper().parseText(xml)
-		def versions = metadata.versioning.versions.version*.text();
-		if (versions.contains(version)) {
-			throw new RuntimeException("${version} has already been released!")
-		}
-	}
-}
-
-publish.mustRunAfter checkVersion
-github.mustRunAfter checkVersion
