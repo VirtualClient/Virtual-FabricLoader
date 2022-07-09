@@ -83,6 +83,10 @@ public final class ModDiscoverer {
 	}
 
 	public List<ModCandidate> discoverMods(FabricLoaderImpl loader, Map<String, Set<ModCandidate>> envDisabledModsOut) throws ModResolutionException {
+		return discoverMods(loader, envDisabledModsOut, true);
+	}
+
+	public List<ModCandidate> discoverMods(FabricLoaderImpl loader, Map<String, Set<ModCandidate>> envDisabledModsOut, boolean includeBuiltIn) throws ModResolutionException {
 		long startTime = System.nanoTime();
 		ForkJoinPool pool = new ForkJoinPool();
 		Set<Path> processedPaths = new HashSet<>(); // suppresses duplicate paths
@@ -115,14 +119,16 @@ public final class ModDiscoverer {
 
 		List<ModCandidate> candidates = new ArrayList<>();
 
-		// add builtin mods
-		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
-			ModCandidate candidate = ModCandidate.createBuiltin(mod, versionOverrides, depOverrides);
-			candidates.add(MetadataVerifier.verifyIndev(candidate));
-		}
+		if (includeBuiltIn) {
+			// add builtin mods
+			for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
+				ModCandidate candidate = ModCandidate.createBuiltin(mod, versionOverrides, depOverrides);
+				candidates.add(MetadataVerifier.verifyIndev(candidate));
+			}
 
-		// Add the current Java version
-		candidates.add(MetadataVerifier.verifyIndev(createJavaMod()));
+			// Add the current Java version
+			candidates.add(MetadataVerifier.verifyIndev(createJavaMod()));
+		}
 
 		ModResolutionException exception = null;
 
