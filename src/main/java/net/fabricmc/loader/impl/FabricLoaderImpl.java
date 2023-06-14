@@ -46,7 +46,6 @@ import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.DirectoryModCandidateFinder;
-import net.fabricmc.loader.impl.discovery.SingleFileModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.discovery.ModDiscoverer;
 import net.fabricmc.loader.impl.discovery.ModResolutionException;
@@ -65,7 +64,6 @@ import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.loader.impl.util.OptiFabricHelper;
 
 @SuppressWarnings("deprecation")
 public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
@@ -213,28 +211,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
 		modCandidates = discoverer.discoverMods(this, envDisabledMods);
-
-		Path optifinePath = getGameDir().resolve("VirtualClient").resolve("optifine-" + getGameProvider().getNormalizedGameVersion() + ".jar");
-
-		if (Files.exists(optifinePath) && modCandidates.stream().noneMatch(modCandidate -> modCandidate.getId().equals("sodium"))) {
-			try {
-				ModDiscoverer optifineDiscoverer = new ModDiscoverer(versionOverrides, depOverrides);
-				Path tmp = getGameDir().resolve("VirtualClient").resolve("tmp");
-
-				Files.createDirectories(tmp);
-
-				Path resolve = tmp.resolve("optifabric.jar");
-
-				if (OptiFabricHelper.copyJarToDest(resolve)) {
-					optifineDiscoverer.addCandidateFinder(new SingleFileModCandidateFinder(resolve, remapRegularMods));
-					modCandidates.addAll(optifineDiscoverer.discoverMods(this, envDisabledMods, false));
-				} else {
-					Log.info(LogCategory.DISCOVERY, "Failed to load OptiFabric.");
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
 
 		// dump version and dependency overrides info
 
